@@ -2,41 +2,88 @@
 using System;
 using System.Collections.Generic;
 
-public class BloggingContext : DbContext
+public class CanteenContext : DbContext
 {
-    public DbSet<Blog> Blogs { get; set; }
-    public DbSet<Post> Posts { get; set; }
+    public DbSet<Reservation> Reservations { get; set; }
+    public DbSet<Canteen> Canteens { get; set; }
+    public DbSet<Menu> Menus { get; set; }
+    public DbSet<Rating> Ratings { get; set; }
+    public DbSet<Customer> Customers { get; set; }
+    public DbSet<Meal> Meals { get; set; }
 
     public string DbPath { get; }
 
-    public BloggingContext()
-    {
-        var folder = Environment.SpecialFolder.LocalApplicationData;
-        var path = Environment.GetFolderPath(folder);
-        DbPath = System.IO.Path.Join(path, "blogging.db");
-    }
+    private const string ConnectionString = @"Data Source=(local);" +
+                                             "Initial Catalog=tempdb;" +
+                                             "User id=SA;" +
+                                             "Password=lukmigind123!;" +
+                                             // "Trusted_Connection=True;" +
+                                             "TrustServerCertificate=True";
+
 
     // The following configures EF to create a Sqlite database file in the
     // special "local" folder for your platform.
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer(@"Server=(local);Database=Blogging;Trusted_Connection=True");
+        => optionsBuilder.UseSqlServer(ConnectionString);
 }
 
-public class Blog
+public class Reservation
 {
-    public int BlogId { get; set; }
-    public string Url { get; set; }
+    public int ReservationId { get; set; }
+    public string CprNumber { get; set; }
+    public int CanteenId { get; }
+    public int MealId { get; }
+    public bool Cancelled { get; set; }
 
-    public List<Post> Posts { get; } = new();
+    public Canteen Canteen { get; set; }
+    public Meal Meal { get; set; }
 }
 
-public class Post
+public class Canteen 
 {
-    public int PostId { get; set; }
-    public string Title { get; set; }
-    public string Content { get; set; }
+    public int CanteenId { get; set; }
+    public int MenuId { get; set; }
+    public string Name { get; set; }
+    public string Location { get; set; }
 
-    public int BlogId { get; set; }
-    public Blog Blog { get; set; }
+    public virtual Menu Menu { get; set; }
+}
+
+public class Menu
+{
+    public int MenuId { get; set; }
+    public string MenuType { get; set; }
+    public DateTime Date { get; set; }
+    public int CanteenId { get; set; }
+
+    public Canteen Canteen { get; set; }
+}
+
+public class Rating
+{
+    public int RatingId { get; set; }
+    public int CanteenId { get; set; }
+    public int RatingValue { get; set; }
+    public int CprNumber { get; set; }
+    public DateTime Date { get; set; }
+    public Canteen Canteen { get; set; }
+}
+
+public class Customer
+{
+    [Key]
+    public string CprNumber { get; set; } // Primary key 
+    public string Name { get; set; }
+}
+
+
+public class Meal {
+    public int MealId { get; set; }
+    public int MenuId { get; set; }
+    public string MealType { get; set; }
+    public string Name { get; set; }
+    public int Quantity { get; set; }
+
+    public Menu Menu { get; set; }
 }
