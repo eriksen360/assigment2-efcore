@@ -48,14 +48,14 @@ namespace EF_Core.Migrations
 
             modelBuilder.Entity("EF_Core.Models.Customer", b =>
                 {
-                    b.Property<string>("CprNumber")
+                    b.Property<string>("AUID")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("CprNumber");
+                    b.HasKey("AUID");
 
                     b.ToTable("Customers");
                 });
@@ -125,7 +125,7 @@ namespace EF_Core.Migrations
                     b.Property<int>("CanteenId")
                         .HasColumnType("int");
 
-                    b.Property<string>("CprNumber")
+                    b.Property<string>("AUID")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
@@ -139,7 +139,7 @@ namespace EF_Core.Migrations
 
                     b.HasIndex("CanteenId");
 
-                    b.HasIndex("CprNumber");
+                    b.HasIndex("AUID");
 
                     b.ToTable("Ratings");
                 });
@@ -158,7 +158,7 @@ namespace EF_Core.Migrations
                     b.Property<int>("CanteenId")
                         .HasColumnType("int");
 
-                    b.Property<string>("CprNumber")
+                    b.Property<string>("AUID")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
@@ -169,7 +169,7 @@ namespace EF_Core.Migrations
 
                     b.HasIndex("CanteenId");
 
-                    b.HasIndex("CprNumber");
+                    b.HasIndex("AUID");
 
                     b.HasIndex("MealId");
 
@@ -208,7 +208,7 @@ namespace EF_Core.Migrations
 
                     b.HasOne("EF_Core.Models.Customer", "Customer")
                         .WithMany()
-                        .HasForeignKey("CprNumber")
+                        .HasForeignKey("AUID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -227,7 +227,7 @@ namespace EF_Core.Migrations
 
                     b.HasOne("EF_Core.Models.Customer", "Customer")
                         .WithMany()
-                        .HasForeignKey("CprNumber")
+                        .HasForeignKey("AUID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

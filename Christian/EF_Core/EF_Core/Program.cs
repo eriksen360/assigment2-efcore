@@ -15,10 +15,8 @@ using (var db = new CanteenContext())
     // Query 2 - Getting the reservations for Customer with CPR 111111-1111
     Console.WriteLine("\nQuery 2\n--------------------");
     var reservations = from r in db.Reservations
-                       from c in db.Canteens
-                       from m in db.Meals
-                       where r.CanteenId == c.CanteenId && r.MealId == m.MealId && r.CprNumber == "111111-1111"
-                       select new { MealId = r.MealId, MealName = m.Name, CanteenName = c.Name };
+                       where r.CprNumber == "111111-1111"
+                       select new { MealId = r.MealId, MealName = r.Meal.Name, CanteenName = r.Canteen.Name };
 
     foreach (var item in reservations)
         Console.WriteLine("Meal Id: " + item.MealId + "\nName: " + item.MealName + "\nCanteen Name: " + item.CanteenName + "\n");
@@ -28,25 +26,13 @@ using (var db = new CanteenContext())
     var kgl_warm_id = db.Meals.Where(m => m.MenuId == kgl_daily_id && m.MealType == "Warm").First().MealId;
     var kgl_street_id = db.Meals.Where(m => m.MenuId == kgl_daily_id && m.MealType == "Street").First().MealId;
 
-    /*var reservations_count = from r in db.Reservations
+    var reservations_count = from r in db.Reservations
                              where (r.MealId == kgl_warm_id || r.MealId == kgl_street_id) && r.CanteenId == kgl_id
                              group r by r.MealId into mealIdGroup
-                             select new { Name = mealIdGroup.Key, Count = mealIdGroup.Count() };
+                             select new { Name = mealIdGroup.Single().Meal.Name, Count = mealIdGroup.Count() };
 
     foreach (var item in reservations_count)
-        Console.WriteLine("Meal Id: " + item.Name + " Amount: " + item.Count);*/
-
-    var warm_count = (from r in db.Reservations
-                where r.MealId == kgl_warm_id
-                select r.MealId).Count();
-    var warm_name = db.Meals.Where(m => m.MealId == kgl_warm_id).Single().Name;
-    Console.WriteLine("Name: " + warm_name + " - Amount: " + warm_count);
-
-    var street_count = (from r in db.Reservations
-                      where r.MealId == kgl_street_id
-                      select r.MealId).Count();
-    var street_name = db.Meals.Where(m => m.MealId == kgl_street_id).Single().Name;
-    Console.WriteLine("Name: " + street_name + " - Amount: " + street_count);
+        Console.WriteLine("Name: " + item.Name + " - Amount: " + item.Count);
 
     // Query 4 - Getting the Just-In-Time and Cancelled meal options for Kgl. Bibliotek
     Console.WriteLine("\nQuery 4\n--------------------");
@@ -62,37 +48,24 @@ using (var db = new CanteenContext())
 
     // Query 5 - Getting the cancelled daily menu meals from the nearby canteens
     Console.WriteLine("\nQuery 5\n--------------------");
-    var nearby_meals = from m in db.Menus
-                       from c in db.Canteens
-                       from meal in db.Meals
-                       where m.MenuType == "Cancelled" && c.CanteenId != kgl_id && c.Location == "Aarhus" && m.CanteenId == c.CanteenId && m.MenuId == meal.MenuId
-                       select new { CanteenName = c.Name, MealName = meal.Name };
+    var nearby_meals = from m in db.Meals
+                       where m.Menu.MenuType == "Cancelled" && m.Menu.Canteen.CanteenId != kgl_id && m.Menu.Canteen.Location == "Aarhus"
+                       select new { CanteenName = m.Menu.Canteen.Name, MealName = m.Name };
 
     foreach (var item in nearby_meals)
         Console.WriteLine(item.CanteenName + ": " + item.MealName);
 
     // Query 6 - Getting the average ratings from all the canteens
     Console.WriteLine("\nQuery 6\n--------------------");
-    var kem_id = db.Canteens.Where(c => c.Name == "Kemisk Canteen").First().CanteenId;
-    var mat_id = db.Canteens.Where(c => c.Name == "Matematisk Canteen").First().CanteenId;
 
-    var kgl_avg = (from r in db.Ratings
-                  where r.CanteenId == kgl_id
-                  select r.RatingValue).Average();
-    var kgl_name = db.Canteens.Where(c => c.CanteenId == kgl_id).Single().Name;
-    Console.WriteLine("Name: " + kgl_name + " - Rating: " + kgl_avg);
+    var ratings = from r in db.Ratings
+                  group r by r.CanteenId into canteenIdGroup
+                  select new { Name = canteenIdGroup.Single().Canteen.Name, Rating = canteenIdGroup.Average(r => r.RatingValue) };
 
-    var kem_avg = (from r in db.Ratings
-                   where r.CanteenId == kem_id
-                   select r.RatingValue).Average();
-    var kem_name = db.Canteens.Where(c => c.CanteenId == kem_id).Single().Name;
-    Console.WriteLine("Name: " + kem_name + " - Rating: " + kem_avg);
-
-    var mat_avg = (from r in db.Ratings
-                   where r.CanteenId == mat_id
-                   select r.RatingValue).Average();
-    var mat_name = db.Canteens.Where(c => c.CanteenId == mat_id).Single().Name;
-    Console.WriteLine("Name: " + mat_name + " - Rating: " + mat_avg);
+    foreach (var item in ratings)
+    {
+        Console.WriteLine("Name: " + item.Name + " - Rating: " + item.Rating);
+    }
 
 
     //ClearData(db);
