@@ -22,16 +22,9 @@ namespace EF_Core.Data
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Reservation> Reservations { get; set; }
         public DbSet<Rating> Ratings { get; set; }
+        public DbSet<Staff> Staffs { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
             => options.UseSqlServer(ConnectionString);
-
-        /*protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<Canteen>()
-                .HasOne(c => c.Menu)
-                .WithOne(m => m.Canteen)
-                .HasForeignKey<>
-        }*/
     }
 }
