@@ -47,7 +47,7 @@ using (var db = new CanteenContext())
 
         foreach (var item in meals)
             Console.WriteLine(item);
-    } catch (Exception ex) { }
+    } catch (Exception ex) { Console.WriteLine("JIT-Menu has been removed due to new requirements"); }
 
     // Query 5 - Getting the cancelled daily menu meals from the nearby canteens
     Console.WriteLine("\nQuery 5\n--------------------");
@@ -77,7 +77,7 @@ using (var db = new CanteenContext())
     // Query 7 - Getting the payroll of the staff members for Kgl. Bibliotek
     Console.WriteLine("\nQuery 7\n--------------------");
 
-    var staff = db.Staffs.ToList();
+    var staff = db.Staffs.Where(s => s.CanteenId == kgl_id).ToList();
 
     foreach (var item in staff)
     {
