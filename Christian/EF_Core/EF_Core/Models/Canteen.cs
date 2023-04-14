@@ -12,5 +12,6 @@ namespace EF_Core.Models
         public int CanteenId { get; set; }
         public string Name { get; set; }
         public string Location { get; set; }
+        public List<Staff> Staffs { get; set; }
     }
 }
