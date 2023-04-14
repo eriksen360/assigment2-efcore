@@ -15,7 +15,7 @@ namespace EF_Core.Models
         public int CanteenId { get; set; }
         public Canteen Canteen { get; set; }
         [ForeignKey("Customer")]
-        public string CprNumber { get; set; }
+        public string AUID { get; set; }
         public Customer Customer { get; set; }
         public int MealId { get; set; }
         public Meal Meal { get; set; }

@@ -119,12 +119,12 @@ namespace EF_Core.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RatingId"));
 
-                    b.Property<int>("CanteenId")
-                        .HasColumnType("int");
-
                     b.Property<string>("AUID")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("CanteenId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
@@ -134,9 +134,9 @@ namespace EF_Core.Migrations
 
                     b.HasKey("RatingId");
 
-                    b.HasIndex("CanteenId");
-
                     b.HasIndex("AUID");
+
+                    b.HasIndex("CanteenId");
 
                     b.ToTable("Ratings");
                 });
@@ -149,28 +149,54 @@ namespace EF_Core.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReservationId"));
 
+                    b.Property<string>("AUID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<bool>("Cancelled")
                         .HasColumnType("bit");
 
                     b.Property<int>("CanteenId")
                         .HasColumnType("int");
 
-                    b.Property<string>("AUID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<int>("MealId")
                         .HasColumnType("int");
 
                     b.HasKey("ReservationId");
 
-                    b.HasIndex("CanteenId");
-
                     b.HasIndex("AUID");
+
+                    b.HasIndex("CanteenId");
 
                     b.HasIndex("MealId");
 
                     b.ToTable("Reservations");
+                });
+
+            modelBuilder.Entity("EF_Core.Models.Staff", b =>
+                {
+                    b.Property<string>("StaffId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("CanteenId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Salary")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("StaffId");
+
+                    b.HasIndex("CanteenId");
+
+                    b.ToTable("Staffs");
                 });
 
             modelBuilder.Entity("EF_Core.Models.Meal", b =>
@@ -197,15 +223,15 @@ namespace EF_Core.Migrations
 
             modelBuilder.Entity("EF_Core.Models.Rating", b =>
                 {
-                    b.HasOne("EF_Core.Models.Canteen", "Canteen")
-                        .WithMany()
-                        .HasForeignKey("CanteenId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("EF_Core.Models.Customer", "Customer")
                         .WithMany()
                         .HasForeignKey("AUID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EF_Core.Models.Canteen", "Canteen")
+                        .WithMany()
+                        .HasForeignKey("CanteenId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -216,15 +242,15 @@ namespace EF_Core.Migrations
 
             modelBuilder.Entity("EF_Core.Models.Reservation", b =>
                 {
-                    b.HasOne("EF_Core.Models.Canteen", "Canteen")
-                        .WithMany()
-                        .HasForeignKey("CanteenId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("EF_Core.Models.Customer", "Customer")
                         .WithMany()
                         .HasForeignKey("AUID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EF_Core.Models.Canteen", "Canteen")
+                        .WithMany()
+                        .HasForeignKey("CanteenId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -239,6 +265,17 @@ namespace EF_Core.Migrations
                     b.Navigation("Customer");
 
                     b.Navigation("Meal");
+                });
+
+            modelBuilder.Entity("EF_Core.Models.Staff", b =>
+                {
+                    b.HasOne("EF_Core.Models.Canteen", "Canteen")
+                        .WithMany()
+                        .HasForeignKey("CanteenId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Canteen");
                 });
 #pragma warning restore 612, 618
         }

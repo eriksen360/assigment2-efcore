@@ -12,10 +12,10 @@ using (var db = new CanteenContext())
     var kgl_daily = db.Meals.Where(m => m.MenuId == kgl_daily_id).ToList();
     kgl_daily.ForEach(m =>  Console.WriteLine(m.MealType.ToString() + ": " + m.Name.ToString()));
 
-    // Query 2 - Getting the reservations for Customer with CPR 111111-1111
+    // Query 2 - Getting the reservations for Customer with auid 111111-1111
     Console.WriteLine("\nQuery 2\n--------------------");
     var reservations = from r in db.Reservations
-                       where r.CprNumber == "111111-1111"
+                       where r.AUID == "111111-1111"
                        select new { MealId = r.MealId, MealName = r.Meal.Name, CanteenName = r.Canteen.Name };
 
     foreach (var item in reservations)
@@ -36,15 +36,18 @@ using (var db = new CanteenContext())
 
     // Query 4 - Getting the Just-In-Time and Cancelled meal options for Kgl. Bibliotek
     Console.WriteLine("\nQuery 4\n--------------------");
-    var kgl_jit_id = db.Menus.Where(m => m.CanteenId == kgl_id && m.MenuType == "Just-In-Time").First().MenuId;
-    var kgl_canc_id = db.Menus.Where(m => m.CanteenId == kgl_id && m.MenuType == "Cancelled").First().MenuId;
+    try
+    {
+        var kgl_jit_id = db.Menus.Where(m => m.CanteenId == kgl_id && m.MenuType == "Just-In-Time").First().MenuId;
+        var kgl_canc_id = db.Menus.Where(m => m.CanteenId == kgl_id && m.MenuType == "Cancelled").First().MenuId;
 
-    var meals = from m in db.Meals
-                where m.MenuId == kgl_jit_id || m.MenuId == kgl_canc_id
-                select m.Name;
+        var meals = from m in db.Meals
+                    where m.MenuId == kgl_jit_id || m.MenuId == kgl_canc_id
+                    select m.Name;
 
-    foreach (var item in meals)
-        Console.WriteLine(item);
+        foreach (var item in meals)
+            Console.WriteLine(item);
+    } catch (Exception ex) { Console.WriteLine("JIT-Menu has been removed due to new requirements"); }
 
     // Query 5 - Getting the cancelled daily menu meals from the nearby canteens
     Console.WriteLine("\nQuery 5\n--------------------");
@@ -62,11 +65,24 @@ using (var db = new CanteenContext())
                   group r by r.CanteenId into canteenIdGroup
                   select new { Name = canteenIdGroup.Single().Canteen.Name, Rating = canteenIdGroup.Average(r => r.RatingValue) };
 
-    foreach (var item in ratings)
+    var ratings_desc = from r in ratings
+                       orderby r.Rating descending
+                       select r;
+
+    foreach (var item in ratings_desc)
     {
         Console.WriteLine("Name: " + item.Name + " - Rating: " + item.Rating);
     }
 
+    // Query 7 - Getting the payroll of the staff members for Kgl. Bibliotek
+    Console.WriteLine("\nQuery 7\n--------------------");
+
+    var staff = db.Staffs.Where(s => s.CanteenId == kgl_id).ToList();
+
+    foreach (var item in staff)
+    {
+        Console.WriteLine("Staff ID: " + item.StaffId + " - Name: " + item.Name + " - Title: " + item.Title + " - Salary: " + item.Salary);
+    }
 
     //ClearData(db);
 }
@@ -80,10 +96,10 @@ void Seed(CanteenContext context)
     context.SaveChanges();
 
     // Adding Customers
-    context.Customers.Add(new Customer { CprNumber = "111111-1111", Name = "Christian" });
-    context.Customers.Add(new Customer { CprNumber = "222222-2222", Name = "Robin" });
-    context.Customers.Add(new Customer { CprNumber = "333333-3333", Name = "Mathias" });
-    context.Customers.Add(new Customer { CprNumber = "444444-4444", Name = "Aleksander" });
+    context.Customers.Add(new Customer { AUID = "111111-1111", Name = "Christian" });
+    context.Customers.Add(new Customer { AUID = "222222-2222", Name = "Robin" });
+    context.Customers.Add(new Customer { AUID = "333333-3333", Name = "Mathias" });
+    context.Customers.Add(new Customer { AUID = "444444-4444", Name = "Aleksander" });
     context.SaveChanges();
 
     //Adding Menus
@@ -103,23 +119,23 @@ void Seed(CanteenContext context)
     context.SaveChanges();
 
     // Adding Ratings
-    var chr_cpr = context.Customers.Where(c => c.CprNumber == "111111-1111").First().CprNumber;
-    var rob_cpr = context.Customers.Where(c => c.CprNumber == "222222-2222").First().CprNumber;
-    var mat_cpr = context.Customers.Where(c => c.CprNumber == "333333-3333").First().CprNumber;
-    var alek_cpr = context.Customers.Where(c => c.CprNumber == "444444-4444").First().CprNumber;
+    var chr_auid = context.Customers.Where(c => c.AUID == "111111-1111").First().AUID;
+    var rob_auid = context.Customers.Where(c => c.AUID == "222222-2222").First().AUID;
+    var mat_auid = context.Customers.Where(c => c.AUID == "333333-3333").First().AUID;
+    var alek_auid = context.Customers.Where(c => c.AUID == "444444-4444").First().AUID;
 
-    context.Ratings.Add(new Rating { CanteenId = kgl_id, CprNumber = chr_cpr, RatingValue = 4, Date = DateTime.Now });
-    context.Ratings.Add(new Rating { CanteenId = kgl_id, CprNumber = rob_cpr, RatingValue = 3, Date = DateTime.Now });
-    context.Ratings.Add(new Rating { CanteenId = kgl_id, CprNumber = mat_cpr, RatingValue = 1, Date = DateTime.Now });
-    context.Ratings.Add(new Rating { CanteenId = kgl_id, CprNumber = alek_cpr, RatingValue = 5, Date = DateTime.Now });
-    context.Ratings.Add(new Rating { CanteenId = kemisk_id, CprNumber = chr_cpr, RatingValue = 2, Date = DateTime.Now });
-    context.Ratings.Add(new Rating { CanteenId = kemisk_id, CprNumber = rob_cpr, RatingValue = 5, Date = DateTime.Now });
-    context.Ratings.Add(new Rating { CanteenId = kemisk_id, CprNumber = mat_cpr, RatingValue = 4, Date = DateTime.Now });
-    context.Ratings.Add(new Rating { CanteenId = kemisk_id, CprNumber = alek_cpr, RatingValue = 3, Date = DateTime.Now });
-    context.Ratings.Add(new Rating { CanteenId = matematisk_id, CprNumber = chr_cpr, RatingValue = 5, Date = DateTime.Now });
-    context.Ratings.Add(new Rating { CanteenId = matematisk_id, CprNumber = rob_cpr, RatingValue = 5, Date = DateTime.Now });
-    context.Ratings.Add(new Rating { CanteenId = matematisk_id, CprNumber = mat_cpr, RatingValue = 4, Date = DateTime.Now });
-    context.Ratings.Add(new Rating { CanteenId = matematisk_id, CprNumber = alek_cpr, RatingValue = 4, Date = DateTime.Now });
+    context.Ratings.Add(new Rating { CanteenId = kgl_id, AUID = chr_auid, RatingValue = 4, Date = DateTime.Now });
+    context.Ratings.Add(new Rating { CanteenId = kgl_id, AUID = rob_auid, RatingValue = 3, Date = DateTime.Now });
+    context.Ratings.Add(new Rating { CanteenId = kgl_id, AUID = mat_auid, RatingValue = 1, Date = DateTime.Now });
+    context.Ratings.Add(new Rating { CanteenId = kgl_id, AUID = alek_auid, RatingValue = 5, Date = DateTime.Now });
+    context.Ratings.Add(new Rating { CanteenId = kemisk_id, AUID = chr_auid, RatingValue = 2, Date = DateTime.Now });
+    context.Ratings.Add(new Rating { CanteenId = kemisk_id, AUID = rob_auid, RatingValue = 5, Date = DateTime.Now });
+    context.Ratings.Add(new Rating { CanteenId = kemisk_id, AUID = mat_auid, RatingValue = 4, Date = DateTime.Now });
+    context.Ratings.Add(new Rating { CanteenId = kemisk_id, AUID = alek_auid, RatingValue = 3, Date = DateTime.Now });
+    context.Ratings.Add(new Rating { CanteenId = matematisk_id, AUID = chr_auid, RatingValue = 5, Date = DateTime.Now });
+    context.Ratings.Add(new Rating { CanteenId = matematisk_id, AUID = rob_auid, RatingValue = 5, Date = DateTime.Now });
+    context.Ratings.Add(new Rating { CanteenId = matematisk_id, AUID = mat_auid, RatingValue = 4, Date = DateTime.Now });
+    context.Ratings.Add(new Rating { CanteenId = matematisk_id, AUID = alek_auid, RatingValue = 4, Date = DateTime.Now });
     context.SaveChanges();
 
     // Adding Meals
@@ -160,10 +176,17 @@ void Seed(CanteenContext context)
     var mat_warm_id = context.Meals.Where(m => m.MenuId == mat_daily_id && m.MealType == "Warm").First().MealId;
     var mat_street_id = context.Meals.Where(m => m.MenuId == mat_daily_id && m.MealType == "Street").First().MealId;
 
-    context.Reservations.Add(new Reservation { CanteenId = kgl_id, MealId = kgl_warm_id, CprNumber = chr_cpr, Cancelled = false });
-    context.Reservations.Add(new Reservation { CanteenId = kgl_id, MealId = kgl_warm_id, CprNumber = rob_cpr, Cancelled = false });
-    context.Reservations.Add(new Reservation { CanteenId = kgl_id, MealId = kgl_warm_id, CprNumber = mat_cpr, Cancelled = false });
-    context.Reservations.Add(new Reservation { CanteenId = kgl_id, MealId = kgl_street_id, CprNumber = alek_cpr, Cancelled = false });
+    context.Reservations.Add(new Reservation { CanteenId = kgl_id, MealId = kgl_warm_id, AUID = chr_auid, Cancelled = false });
+    context.Reservations.Add(new Reservation { CanteenId = kgl_id, MealId = kgl_warm_id, AUID = rob_auid, Cancelled = false });
+    context.Reservations.Add(new Reservation { CanteenId = kgl_id, MealId = kgl_warm_id, AUID = mat_auid, Cancelled = false });
+    context.Reservations.Add(new Reservation { CanteenId = kgl_id, MealId = kgl_street_id, AUID = alek_auid, Cancelled = false });
+    context.SaveChanges();
+
+    // Adding Staff members (Only for Kgl. Bibliotek)
+    context.Staffs.Add(new Staff { StaffId = "010191-4005", Name = "Jens B.", Title = "Cook", Salary = 30700, CanteenId = kgl_id });
+    context.Staffs.Add(new Staff { StaffId = "010294-1234", Name = "Mete C.", Title = "Waiter", Salary = 29000, CanteenId = kgl_id });
+    context.Staffs.Add(new Staff { StaffId = "041287-1937", Name = "Mads D.", Title = "Waiter", Salary = 29000, CanteenId = kgl_id });
+    context.Staffs.Add(new Staff { StaffId = "020189-1278", Name = "Lucile E..", Title = "Cook", Salary = 30700, CanteenId = kgl_id });
     context.SaveChanges();
 }
 void ClearData(CanteenContext context)
@@ -174,7 +197,9 @@ void ClearData(CanteenContext context)
     var menus = context.Menus.ToList();
     var meals = context.Meals.ToList();
     var reservations = context.Reservations.ToList();
+    var staffs = context.Staffs.ToList();
 
+    context.RemoveRange(staffs);
     context.RemoveRange(reservations);
     context.RemoveRange(meals);
     context.RemoveRange(menus);
